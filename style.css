@@ -8,6 +8,28 @@ body {
 }
 
 canvas {
+    position: absolute;
+    top: 20;
+    left: 20;
     background: #717e82;
     border: 2px solid black;
+}
+
+#backgroundCanvas { 
+    background-color: grey;
+}
+
+#gameCanvas {
+    background-color: transparent;
+}
+
+#typedText { 
+    color: white;
+    z-index: 2;
+    position:absolute;
+    top: 500;
+    left: 500;
+    border: 2px solid black;
+    border-radius: 5px;
+    
 }
