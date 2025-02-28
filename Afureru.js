@@ -2,19 +2,11 @@ import Matter from "matter-js";
 
 //Set up matter-js for physics
 const Engine = Matter.Engine,
-  Render = Matter.Render,
   Runner = Matter.Runner,
   Bodies = Matter.Bodies,
   Composite = Matter.Composite; // = world?
 
 var engine = Engine.create();
-
-/* is renderer needed? given I'm already using canvas
-var render = Render.create({
-  element: document.body,
-  engine: engine,
-});
-*/
 
 // Set up HTML5 canvas element for 2d rendering
 const canvas = document.getElementById("gameCanvas");
@@ -22,7 +14,7 @@ const ctx = canvas.getContext("2d");
 const backgroundCanvas = document.getElementById("backgroundCanvas");
 const bgctx = backgroundCanvas.getContext("2d");
 
-canvas.width = backgroundCanvas.width = 800;
+canvas.width = backgroundCanvas.width = 500;
 canvas.height = backgroundCanvas.height = 500;
 
 // prettier-ignore
@@ -67,6 +59,30 @@ const characterSets = {
     }
 };
 
+const cup = {
+  topLeft: { x: 70, y: 60 },
+  bottomLeft: { x: 70, y: 450 },
+  bottomRight: { x: 400, y: 450 },
+  topRight: { x: 400, y: 60 },
+};
+cup.width = cup.bottomRight.x - cup.bottomLeft.x;
+cup.height = cup.bottomLeft.y - cup.topLeft.y;
+cup.bottom = {
+  x: cup.width / 2 + cup.bottomLeft.x,
+  y: cup.height / 2 + cup.topLeft.y,
+};
+
+function DrawCup() {
+  console.log("Drawing the cup");
+  bgctx.lineWidth = 8;
+  bgctx.beginPath();
+  bgctx.moveTo(cup.topLeft.x, cup.topLeft.y); // top left
+  bgctx.lineTo(cup.bottomLeft.x, cup.bottomLeft.y); // bottom left
+  bgctx.lineTo(cup.bottomRight.x, cup.bottomRight.y); // bottom right
+  bgctx.lineTo(cup.topRight.x, cup.topRight.y); // top right
+  bgctx.stroke();
+}
+
 class CharSquare {
   constructor(x, y, size, backColor, char) {
     this.x = x;
@@ -104,13 +120,14 @@ class CharSquare {
 let charSetSettings = {
   hiragana: true,
   hiraganaDiactirics: false,
-  katakana: false,
+  katakana: true,
   katakanaDiacritics: false,
   kanji: false,
 };
 
 // Game globals
 let currentlyDisplayedObjs = [];
+let currentlyNeededRomans = [];
 let allowedCharacters = {};
 const maxOnScreen = 1;
 let currentlyOnScreen = 0;
@@ -126,9 +143,9 @@ function GenerateAvailableCharList() {
 }
 
 function getRandomChar(obj) {
-  const keys = Object.keys(obj); // get array of keys
-  const randomKey = keys[Math.floor(Math.random() * keys.length)];
-  const pair = { kana: randomKey, roman: obj[randomKey] };
+  const charSets = Object.keys(obj); // get array of keys (charsets)
+  const randomSet = charSets[Math.floor(Math.random() * charSets.length)];
+  const pair = { kana: randomSet, roman: obj[randomSet] };
   console.log(`New pair: ${pair.kana} ${pair.roman}`);
   return pair;
 }
@@ -146,18 +163,18 @@ document.addEventListener("keydown", (event) => {
 });
 
 function CheckWord(word) {
-  currentlyDisplayedObjs.forEach((obj) => {
-    if (typedText.toLowerCase() === characterSets.hiragana[obj.char]) {
-      console.log(
-        `Correct! Needed ${
-          characterSets.hiragana[obj.char]
-        }, typed ${typedText}`
-      );
-      obj.delete();
-      typedText = "";
-      CreateNewChar();
+  currentlyNeededRomans.forEach((roman) => {
+    if (word.toLowerCase() === roman) {
+      CorrectWord(roman);
     }
   });
+}
+
+function CorrectWord(roman) {
+  console.log(`Roman ${roman} is correct!`);
+  roman.delete();
+  typedText = "";
+  CreateNewChar();
 }
 
 function CreateNewChar() {
@@ -167,6 +184,7 @@ function CreateNewChar() {
   let newChar = getRandomChar(allowedCharacters);
   const newobj = new CharSquare(x, y, sizeNormal, "white", newChar.kana);
   currentlyDisplayedObjs.push(newobj);
+  currentlyNeededRomans.push(newChar.roman);
   console.log(`current objs:`, currentlyDisplayedObjs);
 
   return newobj;
@@ -177,19 +195,24 @@ function NewGame() {
   CreateNewChar();
 }
 
-function DrawCup() {
-  console.log("Drawing the cup");
-  bgctx.lineWidth = 8;
-  bgctx.beginPath();
-  bgctx.moveTo(70, 60);
-  bgctx.lineTo(70, 450);
-  bgctx.lineTo(400, 450);
-  bgctx.lineTo(400, 60);
-  bgctx.stroke();
-}
-
 DrawCup();
 NewGame();
+
+// create two boxes and a ground
+var boxA = Bodies.rectangle(400, 300, 80, 80);
+var boxB = Bodies.rectangle(350, 50, 80, 80);
+var cupBottomPhys = Bodies.rectangle(
+  (cup.bottomRight.x - cup.bottomLeft.x) / 2 + cup.bottomLeft.x,
+  cup.bottomLeft.y,
+  cup.bottomRight.x - cup.bottomLeft.x,
+  8,
+  { isStatic: true }
+);
+
+// add all of the bodies to the world
+Composite.add(engine.world, [boxA, boxB, cupBottomPhys]);
+var runner = Runner.create();
+Runner.run(runner, engine);
 
 function GameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -197,23 +220,16 @@ function GameLoop() {
   currentlyDisplayedObjs = currentlyDisplayedObjs.filter((obj) => !obj.deleted);
   // draw all objs
   currentlyDisplayedObjs.forEach((obj) => obj.draw());
+
+  ctx.fillStyle = "red";
+  ctx.fillRect(
+    cupBottomPhys.position.x - 165,
+    cupBottomPhys.position.y - 4,
+    cup.width,
+    8
+  );
+  ctx.fillRect(boxA.position.x - 25, boxA.position.y - 25, 50, 50);
+  ctx.fillRect(boxB.position.x - 25, boxB.position.y - 25, 50, 50);
   requestAnimationFrame(GameLoop);
 }
 GameLoop();
-
-// create two boxes and a ground
-var boxA = Bodies.rectangle(400, 300, 80, 80);
-var boxB = Bodies.rectangle(450, 50, 80, 80);
-var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
-
-// add all of the bodies to the world
-Composite.add(engine.world, [boxA, boxB, ground]);
-
-// run the renderer
-Render.run(render);
-
-// create runner
-var runner = Runner.create();
-
-// run the engine
-Runner.run(runner, engine);

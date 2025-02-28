@@ -1,35 +1,38 @@
 body {
-    margin: 0;
+    margin-left: 30px;
+    margin-top: 20px;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    gap: 20px;
     background-color: #222;
+    flex-direction: row;
+    flex-wrap: nowrap;
 }
-
+#gameArea {
+    width: 500px;
+    height: 500px;
+}
 canvas {
     position: absolute;
-    top: 20;
-    left: 20;
     background: #717e82;
     border: 2px solid black;
 }
-
 #backgroundCanvas { 
     background-color: grey;
 }
-
 #gameCanvas {
     background-color: transparent;
 }
-
+#interface{
+    display: flex;
+    width: 300px;
+    flex-direction: column;
+}
 #typedText { 
+    font-size: large;
     color: white;
     z-index: 2;
-    position:absolute;
-    top: 500;
-    left: 500;
-    border: 2px solid black;
+    border: 2px solid rgb(196, 117, 117);
     border-radius: 5px;
-    
+    height: 25px;
+    width: 150px;
 }
