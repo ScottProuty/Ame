@@ -59,18 +59,18 @@ const characterSets = {
     }
 };
 
-const cup = {
-  topLeft: { x: 70, y: 60 },
-  bottomLeft: { x: 70, y: 450 },
-  bottomRight: { x: 400, y: 450 },
-  topRight: { x: 400, y: 60 },
-};
-cup.width = cup.bottomRight.x - cup.bottomLeft.x;
-cup.height = cup.bottomLeft.y - cup.topLeft.y;
-cup.bottom = {
-  x: cup.width / 2 + cup.bottomLeft.x,
-  y: cup.height / 2 + cup.topLeft.y,
-};
+function CreateCup(x, y, width, height) {
+  return {
+    topLeft: { x, y },
+    bottomLeft: { x, y: y + height },
+    bottomRight: { x: x + width, y: y + height },
+    topRight: { x: x + width, y },
+    width,
+    height,
+    bottomCenter: { x: x + width / 2, y: y + height },
+  };
+}
+const cup = CreateCup(70, 60, 330, 390);
 
 function DrawCup() {
   console.log("Drawing the cup");
