@@ -4,9 +4,11 @@ import Matter from "matter-js";
 const Engine = Matter.Engine,
   Runner = Matter.Runner,
   Bodies = Matter.Bodies,
-  Composite = Matter.Composite; // = world?
+  Body = Matter.Body,
+  Composite = Matter.Composite;
 
 var engine = Engine.create();
+const world = engine.world;
 
 // Set up HTML5 canvas element for 2d rendering
 const canvas = document.getElementById("gameCanvas");
@@ -59,20 +61,18 @@ const characterSets = {
     }
 };
 
-const cup = {
-  topLeft: { x: 70, y: 60 },
-  bottomLeft: { x: 70, y: 450 },
-  bottomRight: { x: 400, y: 450 },
-  topRight: { x: 400, y: 60 },
-};
-cup.width = cup.bottomRight.x - cup.bottomLeft.x;
-cup.height = cup.bottomLeft.y - cup.topLeft.y;
-cup.bottom = {
-  x: cup.width / 2 + cup.bottomLeft.x,
-  y: cup.height / 2 + cup.topLeft.y,
-};
-
-function DrawCup() {
+function createCup(x, y, width, height) {
+  return {
+    topLeft: { x, y },
+    bottomLeft: { x, y: y + height },
+    bottomRight: { x: x + width, y: y + height },
+    topRight: { x: x + width, y },
+    width,
+    height,
+    bottomCenter: { x: x + width / 2, y: y + height },
+  };
+}
+function DrawCup(cup) {
   console.log("Drawing the cup");
   bgctx.lineWidth = 8;
   bgctx.beginPath();
@@ -84,35 +84,51 @@ function DrawCup() {
 }
 
 class CharSquare {
-  constructor(x, y, size, backColor, char) {
+  constructor(x, y, size, backColor, kana) {
     this.x = x;
     this.y = y;
     this.size = size;
     this.backColor = backColor;
-    this.char = char;
+    this.kana = kana;
+    this.roman = allowedCharacters[kana];
     this.deleted = false;
+
+    // attach matter.js body
+    this.body = Matter.Bodies.rectangle(x, y, size, size, {
+      restitution: 0.6, // Bounciness
+      friction: 0.5,
+      density: 0.02,
+    });
+    Composite.add(engine.world, this.body);
   }
 
   draw() {
     if (this.deleted) return;
 
+    const { x, y } = this.body.position;
+    const angle = this.body.angle;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+
     ctx.fillStyle = this.backColor;
     ctx.shadowColor = "darkBlue";
     ctx.ShadowOffsetX = 25;
     ctx.shadowBlur = 10;
-    ctx.fillRect(this.x, this.y, this.size, this.size);
-
+    ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+    // draw kana character:
     ctx.fillStyle = "black";
     ctx.font = `${this.size * 0.8}px Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(this.char, this.x + this.size / 2, this.y + this.size / 2);
+    ctx.fillText(this.kana, 0, 0);
+
+    ctx.restore();
   }
   delete() {
     this.deleted = true; // mark for deletion
-  }
-  fall() {
-    ctx.translate();
+    Matter.World.remove(world, this.body); // remove phys part
   }
 }
 
@@ -124,28 +140,31 @@ let charSetSettings = {
   katakanaDiacritics: false,
   kanji: false,
 };
+engine.gravity.y = 0.9;
 
 // Game globals
 let currentlyDisplayedObjs = [];
-let currentlyNeededRomans = [];
 let allowedCharacters = {};
 const maxOnScreen = 1;
 let currentlyOnScreen = 0;
 let typedText = "";
+const cup = createCup(70, 60, 330, 390);
 
 function GenerateAvailableCharList() {
   allowedCharacters == {};
   for (const charSet in charSetSettings) {
+    // charSet loops through hiragana, katakana, etc
     if (charSetSettings[charSet] && characterSets[charSet]) {
+      // if "set: true" and exists in characterSets
       allowedCharacters = { ...allowedCharacters, ...characterSets[charSet] };
-    }
+    } // allowedCharacters = {あ: 'a', い: 'i', etc}
   }
 }
 
-function getRandomChar(obj) {
-  const charSets = Object.keys(obj); // get array of keys (charsets)
-  const randomSet = charSets[Math.floor(Math.random() * charSets.length)];
-  const pair = { kana: randomSet, roman: obj[randomSet] };
+function getRandKanaRomanPair() {
+  const allKana = Object.keys(allowedCharacters); // allKana: ['あ', 'い', etc]
+  const randKana = allKana[Math.floor(Math.random() * allKana.length)];
+  const pair = { kana: randKana, roman: allowedCharacters[randKana] };
   console.log(`New pair: ${pair.kana} ${pair.roman}`);
   return pair;
 }
@@ -163,73 +182,74 @@ document.addEventListener("keydown", (event) => {
 });
 
 function CheckWord(word) {
-  currentlyNeededRomans.forEach((roman) => {
-    if (word.toLowerCase() === roman) {
-      CorrectWord(roman);
+  currentlyDisplayedObjs.forEach((obj) => {
+    if (word.toLowerCase() === obj.roman) {
+      CorrectWord(obj.roman);
+      obj.delete();
     }
   });
 }
 
 function CorrectWord(roman) {
-  console.log(`Roman ${roman} is correct!`);
-  roman.delete();
+  console.log(`Roman "${roman}" is correct!`);
   typedText = "";
-  CreateNewChar();
+  CreateNewBlock();
 }
 
-function CreateNewChar() {
+function CreateNewBlock() {
   let x = Math.floor(74 + Math.random() * 300);
-  let y = 100;
+  let y = 50;
   let sizeNormal = 50;
-  let newChar = getRandomChar(allowedCharacters);
-  const newobj = new CharSquare(x, y, sizeNormal, "white", newChar.kana);
-  currentlyDisplayedObjs.push(newobj);
-  currentlyNeededRomans.push(newChar.roman);
+  let newPair = getRandKanaRomanPair();
+  const newBlock = new CharSquare(x, y, sizeNormal, "white", newPair.kana);
+  Body.setVelocity(newBlock.body, { x: Math.random() * 4 - 2, y: 0 });
+  currentlyDisplayedObjs.push(newBlock);
   console.log(`current objs:`, currentlyDisplayedObjs);
-
-  return newobj;
 }
 
 function NewGame() {
+  console.log("New Game!");
+  DrawCup(cup);
   GenerateAvailableCharList();
-  CreateNewChar();
+  CreateNewBlock();
 }
 
-DrawCup();
 NewGame();
 
-// create two boxes and a ground
-var boxA = Bodies.rectangle(400, 300, 80, 80);
-var boxB = Bodies.rectangle(350, 50, 80, 80);
 var cupBottomPhys = Bodies.rectangle(
-  (cup.bottomRight.x - cup.bottomLeft.x) / 2 + cup.bottomLeft.x,
+  cup.bottomCenter.x,
   cup.bottomLeft.y,
   cup.bottomRight.x - cup.bottomLeft.x,
   8,
   { isStatic: true }
 );
+var cupRightPhys = Bodies.rectangle(
+  cup.topRight.x,
+  (cup.bottomRight.y - cup.topRight.y) / 2 + cup.topRight.y,
+  8,
+  cup.height,
+  { isStatic: true }
+);
+var cupLeftPhys = Bodies.rectangle(
+  cup.topLeft.x,
+  (cup.bottomLeft.y - cup.topLeft.y) / 2 + cup.topLeft.y,
+  8,
+  cup.height,
+  { isStatic: true }
+);
 
-// add all of the bodies to the world
-Composite.add(engine.world, [boxA, boxB, cupBottomPhys]);
+Composite.add(engine.world, [cupBottomPhys, cupRightPhys, cupLeftPhys]);
 var runner = Runner.create();
 Runner.run(runner, engine);
 
 function GameLoop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  Matter.Engine.update(engine); // update physics
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
   // remove objs with "deleted" tag
   currentlyDisplayedObjs = currentlyDisplayedObjs.filter((obj) => !obj.deleted);
   // draw all objs
   currentlyDisplayedObjs.forEach((obj) => obj.draw());
 
-  ctx.fillStyle = "red";
-  ctx.fillRect(
-    cupBottomPhys.position.x - 165,
-    cupBottomPhys.position.y - 4,
-    cup.width,
-    8
-  );
-  ctx.fillRect(boxA.position.x - 25, boxA.position.y - 25, 50, 50);
-  ctx.fillRect(boxB.position.x - 25, boxB.position.y - 25, 50, 50);
   requestAnimationFrame(GameLoop);
 }
 GameLoop();
