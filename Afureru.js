@@ -148,7 +148,13 @@ let allowedCharacters = {};
 const maxOnScreen = 1;
 let currentlyOnScreen = 0;
 let typedText = "";
+let score = 0;
+let scoreboardElement;
 const cup = createCup(70, 60, 330, 390);
+
+window.onload = function () {
+  scoreboardElement = document.getElementById("scoreboard");
+};
 
 function GenerateAvailableCharList() {
   allowedCharacters == {};
@@ -193,18 +199,52 @@ function CheckWord(word) {
 function CorrectWord(roman) {
   console.log(`Roman "${roman}" is correct!`);
   typedText = "";
+  AddScore();
   CreateNewBlock();
 }
 
+function AddScore() {
+  score += 5;
+  updateScoreboard();
+
+  function updateScoreboard() {
+    scoreboardElement.innerText = score;
+    if (score > 199) scoreboardElement.style.fontSize = "xxx-large";
+    else if (score > 99) {
+      scoreboardElement.style.fontSize = "xx-large";
+    } else if (score > 49) scoreboardElement.style.fontSize = "x-large";
+
+    animateScore();
+
+    function animateScore() {
+      scoreboard.classList.add("pop");
+      const duration =
+        parseFloat(getComputedStyle(scoreboard).transitionDuration) * 1000;
+      setTimeout(() => {
+        scoreboard.classList.remove("pop");
+      }, duration); // must match css anim duration
+    }
+  }
+}
+
 function CreateNewBlock() {
-  let x = Math.floor(74 + Math.random() * 300);
-  let y = 50;
-  let sizeNormal = 50;
-  let newPair = getRandKanaRomanPair();
-  const newBlock = new CharSquare(x, y, sizeNormal, "white", newPair.kana);
-  Body.setVelocity(newBlock.body, { x: Math.random() * 4 - 2, y: 0 });
+  const newBlock = CreateKanaBlock();
+  SetNewBlockInitialVelocity();
   currentlyDisplayedObjs.push(newBlock);
   console.log(`current objs:`, currentlyDisplayedObjs);
+
+  function SetNewBlockInitialVelocity() {
+    Body.setVelocity(newBlock.body, { x: Math.random() * 4 - 2, y: 0 });
+  }
+
+  function CreateKanaBlock() {
+    let x = Math.floor(74 + Math.random() * 300);
+    let y = 50;
+    let sizeNormal = 50;
+    let newPair = getRandKanaRomanPair();
+    const newBlock = new CharSquare(x, y, sizeNormal, "white", newPair.kana);
+    return newBlock;
+  }
 }
 
 function NewGame() {

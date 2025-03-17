@@ -28,11 +28,26 @@ canvas {
     flex-direction: column;
 }
 #typedText { 
-    font-size: large;
+    font-size: x-large;
     color: white;
     z-index: 2;
     border: 2px solid rgb(196, 117, 117);
     border-radius: 5px;
-    height: 25px;
+    height: 30px;
     width: 150px;
+}
+#scoreboard {
+    margin-top: 25px;
+    font-size: large;
+    height: 50px;
+    width: 50px;
+    border-radius: 20%;
+    color:white;
+    
+    transition: transform 0.09s ease-in-out;
+    transform-origin: center;
+}
+
+.pop {
+    transform: scaleY(1.2);
 }
