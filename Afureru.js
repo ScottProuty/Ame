@@ -141,6 +141,7 @@ let charSetSettings = {
   kanji: false,
 };
 engine.gravity.y = 0.9;
+let flowRate = 1000; // ms
 
 // Game globals
 let currentlyDisplayedObjs = [];
@@ -187,6 +188,14 @@ document.addEventListener("keydown", (event) => {
   document.getElementById("typedText").innerText = typedText;
 });
 
+document.getElementById("endGameBtn").addEventListener("click", () => {
+  GameOver();
+  StopFlow();
+});
+document.getElementById("newGameBtn").addEventListener("click", () => {
+  StartFlow();
+});
+
 function CheckWord(word) {
   currentlyDisplayedObjs.forEach((obj) => {
     if (word.toLowerCase() === obj.roman) {
@@ -200,30 +209,30 @@ function CorrectWord(roman) {
   console.log(`Roman "${roman}" is correct!`);
   typedText = "";
   AddScore();
-  CreateNewBlock();
 }
 
 function AddScore() {
   score += 5;
   updateScoreboard();
+}
 
-  function updateScoreboard() {
-    scoreboardElement.innerText = score;
-    if (score > 199) scoreboardElement.style.fontSize = "xxx-large";
-    else if (score > 99) {
-      scoreboardElement.style.fontSize = "xx-large";
-    } else if (score > 49) scoreboardElement.style.fontSize = "x-large";
+function updateScoreboard() {
+  scoreboardElement.innerText = score;
+  if (score > 199) scoreboardElement.style.fontSize = "xxx-large";
+  else if (score > 99) {
+    scoreboardElement.style.fontSize = "xx-large";
+  } else if (score > 49) scoreboardElement.style.fontSize = "x-large";
+  else scoreboardElement.style.fontSize = "large";
 
-    animateScore();
+  animateScore();
 
-    function animateScore() {
-      scoreboard.classList.add("pop");
-      const duration =
-        parseFloat(getComputedStyle(scoreboard).transitionDuration) * 1000;
-      setTimeout(() => {
-        scoreboard.classList.remove("pop");
-      }, duration); // must match css anim duration
-    }
+  function animateScore() {
+    scoreboard.classList.add("pop");
+    const duration =
+      parseFloat(getComputedStyle(scoreboard).transitionDuration) * 1000;
+    setTimeout(() => {
+      scoreboard.classList.remove("pop");
+    }, duration); // must match css anim duration
   }
 }
 
@@ -246,12 +255,29 @@ function CreateNewBlock() {
     return newBlock;
   }
 }
+function EraseAllBlocks() {
+  currentlyDisplayedObjs.forEach((block) => {
+    block.delete();
+  });
+}
+
+const flowTimer = setInterval(CreateNewBlock, flowRate);
+function StopFlow() {
+  clearInterval(flowTimer);
+}
 
 function NewGame() {
   console.log("New Game!");
   DrawCup(cup);
   GenerateAvailableCharList();
   CreateNewBlock();
+}
+
+function GameOver() {
+  StopFlow();
+  score = 0;
+  updateScoreboard();
+  EraseAllBlocks();
 }
 
 NewGame();
