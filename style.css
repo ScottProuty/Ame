@@ -36,7 +36,7 @@ canvas {
     height: 30px;
     width: 150px;
 }
-#scoreboard {
+#score {
     margin-top: 25px;
     font-size: large;
     height: 50px;
@@ -50,4 +50,8 @@ canvas {
 
 .pop {
     transform: scaleY(1.2);
+}
+
+#scoreBoard {
+    color:whitesmoke;
 }

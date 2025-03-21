@@ -150,11 +150,13 @@ const maxOnScreen = 1;
 let currentlyOnScreen = 0;
 let typedText = "";
 let score = 0;
-let scoreboardElement;
+let highScore = 0;
+let scoreElement;
+let flowTimer;
 const cup = createCup(70, 60, 330, 390);
 
 window.onload = function () {
-  scoreboardElement = document.getElementById("scoreboard");
+  scoreElement = document.getElementById("score");
 };
 
 function GenerateAvailableCharList() {
@@ -190,10 +192,9 @@ document.addEventListener("keydown", (event) => {
 
 document.getElementById("endGameBtn").addEventListener("click", () => {
   GameOver();
-  StopFlow();
 });
 document.getElementById("newGameBtn").addEventListener("click", () => {
-  StartFlow();
+  NewGame();
 });
 
 function CheckWord(word) {
@@ -213,25 +214,25 @@ function CorrectWord(roman) {
 
 function AddScore() {
   score += 5;
-  updateScoreboard();
+  updateScore();
 }
 
-function updateScoreboard() {
-  scoreboardElement.innerText = score;
-  if (score > 199) scoreboardElement.style.fontSize = "xxx-large";
+function updateScore() {
+  scoreElement.innerText = score;
+  if (score > 199) scoreElement.style.fontSize = "xxx-large";
   else if (score > 99) {
-    scoreboardElement.style.fontSize = "xx-large";
-  } else if (score > 49) scoreboardElement.style.fontSize = "x-large";
-  else scoreboardElement.style.fontSize = "large";
+    scoreElement.style.fontSize = "xx-large";
+  } else if (score > 49) scoreElement.style.fontSize = "x-large";
+  else scoreElement.style.fontSize = "large";
 
   animateScore();
 
   function animateScore() {
-    scoreboard.classList.add("pop");
+    scoreElement.classList.add("pop");
     const duration =
-      parseFloat(getComputedStyle(scoreboard).transitionDuration) * 1000;
+      parseFloat(getComputedStyle(scoreElement).transitionDuration) * 1000;
     setTimeout(() => {
-      scoreboard.classList.remove("pop");
+      scoreElement.classList.remove("pop");
     }, duration); // must match css anim duration
   }
 }
@@ -240,7 +241,7 @@ function CreateNewBlock() {
   const newBlock = CreateKanaBlock();
   SetNewBlockInitialVelocity();
   currentlyDisplayedObjs.push(newBlock);
-  console.log(`current objs:`, currentlyDisplayedObjs);
+  //console.log(`current objs:`, currentlyDisplayedObjs);
 
   function SetNewBlockInitialVelocity() {
     Body.setVelocity(newBlock.body, { x: Math.random() * 4 - 2, y: 0 });
@@ -261,26 +262,57 @@ function EraseAllBlocks() {
   });
 }
 
-const flowTimer = setInterval(CreateNewBlock, flowRate);
+function StartFlow() {
+  if (!flowTimer) flowTimer = setInterval(CreateNewBlock, flowRate);
+}
+
 function StopFlow() {
   clearInterval(flowTimer);
+  flowTimer = null;
+}
+function SetScoreboard() {
+  document.getElementById("lastScore").innerText = score;
+  if (score > highScore) {
+    document.getElementById("highScore").innerText = score;
+    highScore = score;
+  }
 }
 
 function NewGame() {
   console.log("New Game!");
-  DrawCup(cup);
   GenerateAvailableCharList();
   CreateNewBlock();
+  StartFlow();
 }
 
 function GameOver() {
   StopFlow();
+  SetScoreboard();
   score = 0;
-  updateScoreboard();
+  updateScore();
   EraseAllBlocks();
 }
 
-NewGame();
+function CheckForBlockBelowCanvas() {
+  Matter.Events.on(engine, "afterUpdate", function () {
+    // Check each body in world
+    const bodies = Matter.Composite.allBodies(engine.world);
+
+    bodies.forEach((body) => {
+      const canvasHeight = document.getElementById("gameCanvas").height;
+      if (
+        body.position.y >
+        canvasHeight + body.bounds.max.y - body.bounds.min.y
+      ) {
+        console.log("Body has fallen off canvas");
+        Matter.World.remove(engine.world, body);
+        GameOver();
+      }
+    });
+  });
+}
+
+DrawCup(cup);
 
 var cupBottomPhys = Bodies.rectangle(
   cup.bottomCenter.x,
@@ -315,7 +347,7 @@ function GameLoop() {
   currentlyDisplayedObjs = currentlyDisplayedObjs.filter((obj) => !obj.deleted);
   // draw all objs
   currentlyDisplayedObjs.forEach((obj) => obj.draw());
-
+  CheckForBlockBelowCanvas();
   requestAnimationFrame(GameLoop);
 }
 GameLoop();
