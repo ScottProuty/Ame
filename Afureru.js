@@ -16,8 +16,8 @@ const ctx = canvas.getContext("2d");
 const backgroundCanvas = document.getElementById("backgroundCanvas");
 const bgctx = backgroundCanvas.getContext("2d");
 
-canvas.width = backgroundCanvas.width = 500;
-canvas.height = backgroundCanvas.height = 500;
+canvas.width = backgroundCanvas.width = 800;
+canvas.height = backgroundCanvas.height = 700;
 
 // prettier-ignore
 const characterSets = {
@@ -61,7 +61,7 @@ const characterSets = {
     }
 };
 
-function createCup(x, y, width, height) {
+function createCup(x, y, width, height, chamferSize = width / 10) {
   return {
     topLeft: { x, y },
     bottomLeft: { x, y: y + height },
@@ -70,17 +70,79 @@ function createCup(x, y, width, height) {
     width,
     height,
     bottomCenter: { x: x + width / 2, y: y + height },
+    chamferSize,
   };
 }
 function DrawCup(cup) {
   console.log("Drawing the cup");
+  //const chamferSize = cup.width / 10;
   bgctx.lineWidth = 8;
   bgctx.beginPath();
   bgctx.moveTo(cup.topLeft.x, cup.topLeft.y); // top left
-  bgctx.lineTo(cup.bottomLeft.x, cup.bottomLeft.y); // bottom left
-  bgctx.lineTo(cup.bottomRight.x, cup.bottomRight.y); // bottom right
+  bgctx.lineTo(cup.bottomLeft.x, cup.bottomLeft.y - cup.chamferSize); // bottom left (start chamfer)
+  bgctx.lineTo(cup.bottomLeft.x + cup.chamferSize, cup.bottomLeft.y); // bottom left (finish chamfer)
+  bgctx.lineTo(cup.bottomRight.x - cup.chamferSize, cup.bottomRight.y); // bottom right (start chamfer)
+  bgctx.lineTo(cup.bottomRight.x, cup.bottomRight.y - cup.chamferSize); // bottom right (finish chamfer)
   bgctx.lineTo(cup.topRight.x, cup.topRight.y); // top right
   bgctx.stroke();
+}
+
+function CreateCupPhysics() {
+  const cupEdgewidth = 8;
+  var cupBottomPhys = Bodies.rectangle(
+    cup.bottomCenter.x,
+    cup.bottomLeft.y,
+    cup.bottomRight.x - cup.bottomLeft.x - 2 * cup.chamferSize,
+    cupEdgewidth,
+    { isStatic: true }
+  );
+  var cupRightPhys = Bodies.rectangle(
+    cup.topRight.x,
+    (cup.bottomRight.y - cup.topRight.y) / 2 + cup.topRight.y,
+    cupEdgewidth,
+    cup.height - cup.chamferSize,
+    { isStatic: true }
+  );
+
+  var cupLeftPhys = Bodies.rectangle(
+    cup.topLeft.x,
+    (cup.bottomLeft.y - cup.topLeft.y) / 2 + cup.topLeft.y,
+    cupEdgewidth,
+    cup.height - cup.chamferSize,
+    { isStatic: true }
+  );
+
+  const leftChamferVertices = [
+    { x: cup.bottomLeft.x, y: cup.bottomLeft.y - cup.chamferSize }, // Top-left
+    { x: cup.bottomLeft.x, y: cup.bottomLeft.y }, // Bottom-left
+    { x: cup.bottomLeft.x + cup.chamferSize, y: cup.bottomLeft.y }, // Bottom-right
+  ];
+
+  const rightChamferVertices = [
+    { x: cup.bottomRight.x, y: cup.bottomRight.y - cup.chamferSize }, // Top-right
+    { x: cup.bottomRight.x, y: cup.bottomRight.y }, // Bottom-right
+    { x: cup.bottomRight.x - cup.chamferSize, y: cup.bottomRight.y }, // Bottom-left
+  ];
+  const leftChamferPhys = Matter.Bodies.fromVertices(
+    cup.bottomLeft.x + cup.chamferSize / 2,
+    cup.bottomLeft.y - cup.chamferSize / 2,
+    [leftChamferVertices],
+    { isStatic: true }
+  );
+
+  const rightChamferPhys = Matter.Bodies.fromVertices(
+    cup.bottomRight.x - cup.chamferSize / 2,
+    cup.bottomRight.y - cup.chamferSize / 2,
+    [rightChamferVertices],
+    { isStatic: true }
+  );
+  Composite.add(engine.world, [
+    cupBottomPhys,
+    cupRightPhys,
+    cupLeftPhys,
+    leftChamferPhys,
+    rightChamferPhys,
+  ]);
 }
 
 class CharSquare {
@@ -128,6 +190,7 @@ class CharSquare {
   }
   delete() {
     this.deleted = true; // mark for deletion
+    Composite.remove(engine.world, this.body);
     Matter.World.remove(world, this.body); // remove phys part
   }
 }
@@ -153,7 +216,7 @@ let score = 0;
 let highScore = 0;
 let scoreElement;
 let flowTimer;
-const cup = createCup(70, 60, 330, 390);
+const cup = createCup(235, 150, 330, 400);
 
 window.onload = function () {
   scoreElement = document.getElementById("score");
@@ -244,11 +307,17 @@ function CreateNewBlock() {
   //console.log(`current objs:`, currentlyDisplayedObjs);
 
   function SetNewBlockInitialVelocity() {
-    Body.setVelocity(newBlock.body, { x: Math.random() * 4 - 2, y: 0 });
+    let initialVelocity = 1.7;
+    if (newBlock.x > cup.bottomCenter.x) initialVelocity = -initialVelocity;
+
+    Body.setVelocity(newBlock.body, {
+      x: Math.random() * initialVelocity,
+      y: 0,
+    });
   }
 
   function CreateKanaBlock() {
-    let x = Math.floor(74 + Math.random() * 300);
+    let x = Math.floor(cup.topLeft.x + Math.random() * cup.width);
     let y = 50;
     let sizeNormal = 50;
     let newPair = getRandKanaRomanPair();
@@ -313,30 +382,8 @@ function CheckForBlockBelowCanvas() {
 }
 
 DrawCup(cup);
+CreateCupPhysics();
 
-var cupBottomPhys = Bodies.rectangle(
-  cup.bottomCenter.x,
-  cup.bottomLeft.y,
-  cup.bottomRight.x - cup.bottomLeft.x,
-  8,
-  { isStatic: true }
-);
-var cupRightPhys = Bodies.rectangle(
-  cup.topRight.x,
-  (cup.bottomRight.y - cup.topRight.y) / 2 + cup.topRight.y,
-  8,
-  cup.height,
-  { isStatic: true }
-);
-var cupLeftPhys = Bodies.rectangle(
-  cup.topLeft.x,
-  (cup.bottomLeft.y - cup.topLeft.y) / 2 + cup.topLeft.y,
-  8,
-  cup.height,
-  { isStatic: true }
-);
-
-Composite.add(engine.world, [cupBottomPhys, cupRightPhys, cupLeftPhys]);
 var runner = Runner.create();
 Runner.run(runner, engine);
 
