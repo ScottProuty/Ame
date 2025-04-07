@@ -1,15 +1,5 @@
 import Matter from "matter-js";
 
-//Set up matter-js for physics
-const Engine = Matter.Engine,
-  Runner = Matter.Runner,
-  Bodies = Matter.Bodies,
-  Body = Matter.Body,
-  Composite = Matter.Composite;
-
-var engine = Engine.create();
-const world = engine.world;
-
 // Set up HTML5 canvas element for 2d rendering
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -18,6 +8,39 @@ const bgctx = backgroundCanvas.getContext("2d");
 
 canvas.width = backgroundCanvas.width = 800;
 canvas.height = backgroundCanvas.height = 700;
+
+// Matter-js globals
+const Engine = Matter.Engine,
+  Runner = Matter.Runner,
+  Bodies = Matter.Bodies,
+  Body = Matter.Body,
+  Composite = Matter.Composite;
+const engine = Engine.create();
+const world = engine.world;
+var runner;
+
+// Game globals
+let currentlyDisplayedObjs = [];
+let allowedCharacters = {};
+let typedText = "";
+let score = 0;
+let highScore = 0;
+let scoreElement;
+let lastScoreElement;
+let highScoreElement;
+let flowTimer;
+const cup = createCup(235, 180, 330, 400);
+
+// Game settings globals
+let charSetSettings = {
+  hiragana: true,
+  hiraganaDiactirics: false,
+  katakana: true,
+  katakanaDiacritics: false,
+  kanji: false,
+};
+engine.gravity.y = 0.9;
+let flowRate = 1000; // ms
 
 // prettier-ignore
 const characterSets = {
@@ -73,9 +96,8 @@ function createCup(x, y, width, height, chamferSize = width / 10) {
     chamferSize,
   };
 }
+
 function DrawCup(cup) {
-  console.log("Drawing the cup");
-  //const chamferSize = cup.width / 10;
   bgctx.lineWidth = 8;
   bgctx.beginPath();
   bgctx.moveTo(cup.topLeft.x, cup.topLeft.y); // top left
@@ -195,31 +217,10 @@ class CharSquare {
   }
 }
 
-// Game settings
-let charSetSettings = {
-  hiragana: true,
-  hiraganaDiactirics: false,
-  katakana: true,
-  katakanaDiacritics: false,
-  kanji: false,
-};
-engine.gravity.y = 0.9;
-let flowRate = 1000; // ms
-
-// Game globals
-let currentlyDisplayedObjs = [];
-let allowedCharacters = {};
-const maxOnScreen = 1;
-let currentlyOnScreen = 0;
-let typedText = "";
-let score = 0;
-let highScore = 0;
-let scoreElement;
-let flowTimer;
-const cup = createCup(235, 150, 330, 400);
-
 window.onload = function () {
   scoreElement = document.getElementById("score");
+  lastScoreElement = document.getElementById("lastScore");
+  highScoreElement = document.getElementById("highScore");
 };
 
 function GenerateAvailableCharList() {
@@ -261,43 +262,16 @@ document.getElementById("newGameBtn").addEventListener("click", () => {
 });
 
 function CheckWord(word) {
+  let numSimultaneouslyCorrect = 0;
   currentlyDisplayedObjs.forEach((obj) => {
     if (word.toLowerCase() === obj.roman) {
-      CorrectWord(obj.roman);
+      numSimultaneouslyCorrect++;
+      console.log(`Roman "${obj.roman}" is correct!`);
       obj.delete();
+      typedText = "";
     }
   });
-}
-
-function CorrectWord(roman) {
-  console.log(`Roman "${roman}" is correct!`);
-  typedText = "";
-  AddScore();
-}
-
-function AddScore() {
-  score += 5;
-  updateScore();
-}
-
-function updateScore() {
-  scoreElement.innerText = score;
-  if (score > 199) scoreElement.style.fontSize = "xxx-large";
-  else if (score > 99) {
-    scoreElement.style.fontSize = "xx-large";
-  } else if (score > 49) scoreElement.style.fontSize = "x-large";
-  else scoreElement.style.fontSize = "large";
-
-  animateScore();
-
-  function animateScore() {
-    scoreElement.classList.add("pop");
-    const duration =
-      parseFloat(getComputedStyle(scoreElement).transitionDuration) * 1000;
-    setTimeout(() => {
-      scoreElement.classList.remove("pop");
-    }, duration); // must match css anim duration
-  }
+  if (numSimultaneouslyCorrect > 0) AddScore(numSimultaneouslyCorrect);
 }
 
 function CreateNewBlock() {
@@ -318,7 +292,7 @@ function CreateNewBlock() {
 
   function CreateKanaBlock() {
     let x = Math.floor(cup.topLeft.x + Math.random() * cup.width);
-    let y = 50;
+    let y = -50;
     let sizeNormal = 50;
     let newPair = getRandKanaRomanPair();
     const newBlock = new CharSquare(x, y, sizeNormal, "white", newPair.kana);
@@ -339,12 +313,54 @@ function StopFlow() {
   clearInterval(flowTimer);
   flowTimer = null;
 }
-function SetScoreboard() {
-  document.getElementById("lastScore").innerText = score;
-  if (score > highScore) {
-    document.getElementById("highScore").innerText = score;
-    highScore = score;
+
+// *** Scoring ***
+function AddScore(numCorrect) {
+  let regularScore = 5 * numCorrect;
+  let bonus = 2 * (numCorrect - 1);
+  score += regularScore + bonus;
+  console.log(`Scored ${regularScore + bonus} points!`);
+  updateScore(bonus);
+}
+
+function updateScore(bonus = 0) {
+  scoreElement.innerText = score;
+  StyleScore();
+  AnimateScore();
+
+  function StyleScore() {
+    if (score > 199) scoreElement.style.fontSize = "xxx-large";
+    else if (score > 99) {
+      scoreElement.style.fontSize = "xx-large";
+    } else if (score > 49) scoreElement.style.fontSize = "x-large";
+    else scoreElement.style.fontSize = "large";
   }
+  function AnimateScore() {
+    scoreElement.classList.add("pop");
+    const duration =
+      parseFloat(getComputedStyle(scoreElement).transitionDuration) * 1000;
+    setTimeout(() => {
+      scoreElement.classList.remove("pop");
+    }, duration); // must match css anim duration
+  }
+}
+
+let isHighScore = () => score > highScore;
+
+function SaveScores() {
+  lastScoreElement.innerText = score;
+  localStorage.setItem("lastScore", score);
+  if (isHighScore()) {
+    highScoreElement.innerText = score;
+    highScore = score;
+    localStorage.setItem("highScore", score);
+  }
+}
+
+function initScoreBoard() {
+  highScore = parseInt(localStorage.getItem("highScore")) || 0;
+  console.log(highScoreElement.innerText);
+  highScoreElement.innerText = highScore;
 }
 
 function NewGame() {
@@ -356,7 +372,7 @@ function NewGame() {
 
 function GameOver() {
   StopFlow();
-  SetScoreboard();
+  SaveScores();
   score = 0;
   updateScore();
   EraseAllBlocks();
@@ -381,11 +397,11 @@ function CheckForBlockBelowCanvas() {
   });
 }
 
-DrawCup(cup);
-CreateCupPhysics();
-
-var runner = Runner.create();
-Runner.run(runner, engine);
+function CreateGame() {
+  DrawCup(cup);
+  CreateCupPhysics();
+  //initScoreBoard();
+}
 
 function GameLoop() {
   Matter.Engine.update(engine); // update physics
@@ -397,4 +413,9 @@ function GameLoop() {
   CheckForBlockBelowCanvas();
   requestAnimationFrame(GameLoop);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  CreateGame();
+});
+
 GameLoop();
