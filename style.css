@@ -44,6 +44,7 @@ canvas {
     border-radius: 5px;
     height: 30px;
     width: 200px;
+    margin-top:auto;
 }
 #score {
     margin-top: 25px;
@@ -80,7 +81,13 @@ button:hover {
     background-color: rgb(103, 124, 228);
     color:white;
 }
-
+#settingsBtn {
+    margin-top: auto;
+    font-size: medium;
+    border-radius: 10%;
+    height:28px;
+    width: 35%;
+}
 .pop {
     transform: scaleY(1.2);
 }
@@ -89,4 +96,29 @@ button:hover {
     align-self:flex-start;
     padding-left: 20px;
     color:whitesmoke;
+}
+
+.modal {
+    position:fixed;
+    top:100px;
+    left:100px;
+    width:50%;
+    height:50%;
+    background-color: rgba(0,0,0,0.6);
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    z-index:11;
+}
+.modal-content {
+    background:white;
+    padding: 20px;
+    border-radius: 10px;
+    min-width:400px;
+    max-width: 80%;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+}
+
+.hidden {
+    display: none;
 }

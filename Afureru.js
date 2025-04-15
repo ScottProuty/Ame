@@ -28,15 +28,16 @@ let highScore = 0;
 let scoreElement;
 let lastScoreElement;
 let highScoreElement;
+let settingsModal;
 let flowTimer;
 const cup = createCup(235, 180, 330, 400);
 
 // Game settings globals
 let charSetSettings = {
   hiragana: true,
-  hiraganaDiactirics: false,
+  hiraganaDiactirics: true,
   katakana: true,
-  katakanaDiacritics: false,
+  katakanaDiacritics: true,
   kanji: false,
 };
 engine.gravity.y = 0.9;
@@ -81,6 +82,9 @@ const characterSets = {
     ダ: "da",  ヂ: "ji",  ヅ: "zu",  デ: "de",  ド: "do",
     バ: "ba",  ビ: "bi",  ブ: "bu",  ベ: "be",  ボ: "bo",
     パ: "pa",  ピ: "pi",  プ: "pu",  ペ: "pe",  ポ: "po",
+    },
+    kanji: {
+      私: "watashi", 雨:"ame", 行: "iku", 
     }
 };
 
@@ -221,6 +225,7 @@ window.onload = function () {
   scoreElement = document.getElementById("score");
   lastScoreElement = document.getElementById("lastScore");
   highScoreElement = document.getElementById("highScore");
+  settingsModal = document.getElementById("settingsModal");
 };
 
 function GenerateAvailableCharList() {
@@ -259,6 +264,12 @@ document.getElementById("endGameBtn").addEventListener("click", () => {
 });
 document.getElementById("newGameBtn").addEventListener("click", () => {
   NewGame();
+});
+document.getElementById("settingsBtn").addEventListener("click", () => {
+  openSettings();
+});
+document.getElementById("closeSettingsBtn").addEventListener("click", () => {
+  closeSettings();
 });
 
 function CheckWord(word) {
@@ -362,9 +373,13 @@ function initScoreBoard() {
   console.log(highScoreElement.innerText);
   highScoreElement.innerText = highScore;
 }
+function ToggleSettingsButton(enableBool) {
+  document.getElementById("settingsBtn").disabled = !enableBool;
+}
 
 function NewGame() {
   console.log("New Game!");
+  ToggleSettingsButton(false);
   GenerateAvailableCharList();
   CreateNewBlock();
   StartFlow();
@@ -376,6 +391,7 @@ function GameOver() {
   score = 0;
   updateScore();
   EraseAllBlocks();
+  ToggleSettingsButton(true);
 }
 
 function CheckForBlockBelowCanvas() {
@@ -395,6 +411,14 @@ function CheckForBlockBelowCanvas() {
       }
     });
   });
+}
+
+function openSettings() {
+  settingsModal.classList.remove("hidden");
+}
+
+function closeSettings() {
+  settingsModal.classList.add("hidden");
 }
 
 function CreateGame() {
