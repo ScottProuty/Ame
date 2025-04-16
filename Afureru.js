@@ -30,12 +30,12 @@ let lastScoreElement;
 let highScoreElement;
 let settingsModal;
 let flowTimer;
-const cup = createCup(235, 180, 330, 400);
+const cup = createCup(235, 180, 330, 400, 55);
 
 // Game settings globals
 let charSetSettings = {
   hiragana: true,
-  hiraganaDiactirics: true,
+  hiraganaDiacritics: true,
   katakana: true,
   katakanaDiacritics: true,
   kanji: false,
@@ -310,6 +310,7 @@ function CreateNewBlock() {
     return newBlock;
   }
 }
+
 function EraseAllBlocks() {
   currentlyDisplayedObjs.forEach((block) => {
     block.delete();
@@ -334,17 +335,38 @@ function AddScore(numCorrect) {
   updateScore(bonus);
 }
 
+const boxShadowBlurSpreadMultipliers = [
+  { blur: 37, spread: 67 },
+  { blur: 20, spread: 29 },
+  { blur: 17, spread: 22 },
+];
+const boxShadowColors = [
+  "rgb(255, 236, 236)",
+  "rgb(255, 123, 0)",
+  "rgb(106, 0, 255)",
+];
+
 function updateScore(bonus = 0) {
   scoreElement.innerText = score;
   StyleScore();
+  updateBoxShadow();
   AnimateScore();
 
   function StyleScore() {
-    if (score > 199) scoreElement.style.fontSize = "xxx-large";
-    else if (score > 99) {
+    if (score > 450) scoreElement.style.fontSize = "xxx-large";
+    else if (score > 199) {
       scoreElement.style.fontSize = "xx-large";
-    } else if (score > 49) scoreElement.style.fontSize = "x-large";
+    } else if (score > 100) scoreElement.style.fontSize = "x-large";
     else scoreElement.style.fontSize = "large";
+    scoreElement.style.setProperty("--score-size", `${score / 4.5}px`);
+  }
+  function updateBoxShadow() {
+    const shadows = boxShadowBlurSpreadMultipliers.map((bs, i) => {
+      return `0px 0px ${score / bs.blur}px ${score / bs.spread}px ${
+        boxShadowColors[i]
+      }`;
+    });
+    scoreElement.style.boxShadow = shadows.join(", ");
   }
   function AnimateScore() {
     scoreElement.classList.add("pop");
@@ -377,8 +399,20 @@ function ToggleSettingsButton(enableBool) {
   document.getElementById("settingsBtn").disabled = !enableBool;
 }
 
+function GetChecked(id) {
+  return document.getElementById(id).checked;
+}
+function LoadKanaSettings() {
+  charSetSettings.hiragana = GetChecked("hiraganaCbx");
+  charSetSettings.katakana = GetChecked("katakanaCbx");
+  charSetSettings.hiraganaDiacritics = GetChecked("hiraganaDiacriticsCbx");
+  charSetSettings.katakanaDiacritics = GetChecked("katakanaDiacriticsCbx");
+  console.log(charSetSettings);
+}
+
 function NewGame() {
   console.log("New Game!");
+  LoadKanaSettings();
   ToggleSettingsButton(false);
   GenerateAvailableCharList();
   CreateNewBlock();
@@ -391,7 +425,13 @@ function GameOver() {
   score = 0;
   updateScore();
   EraseAllBlocks();
+  ClearTypedText();
   ToggleSettingsButton(true);
+}
+
+function ClearTypedText() {
+  typedText = "";
+  document.getElementById("typedText").innerText = typedText;
 }
 
 function CheckForBlockBelowCanvas() {

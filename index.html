@@ -25,15 +25,27 @@
       <br />
       <button id="newGameBtn">New Game</button>
       <button id="endGameBtn">End Game</button>
-      <button id="settingsBtn">Settings</button>
+      <button id="settingsBtn">⚙️ Settings</button>
     </div>
     <div id="settingsModal" class="modal hidden">
       <div class="modal-content">
         <h2>Settings</h2>
-        <p>coming soon</p>
+        <p>Enable Kana:</p>
+        <input type="checkbox" id="hiraganaCbx" checked />
+        <label for="hiraganaCbx">Hiragana</label><br />
+        <input type="checkbox" id="katakanaCbx" checked />
+        <label for="katakanaCbx">Katakana</label><br />
+        <input type="checkbox" id="hiraganaDiacriticsCbx" />
+        <label for="hiraganaDiacriticsCbx">Hiragana Diactirics</label><br />
+        <input type="checkbox" id="katakanaDiacriticsCbx" />
+        <label for="katakanaDiacriticsCbx">Katakana Diacritics</label><br />
         <button id="closeSettingsBtn">Close</button>
+        <div id="credits">
+          Created by <a href="www.ScottLProuty.com">Scott</a>
+        </div>
       </div>
     </div>
+
     <script type="module" src="Afureru.js"></script>
   </body>
 </html>
