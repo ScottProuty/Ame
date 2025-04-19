@@ -29,6 +29,7 @@ let scoreElement;
 let lastScoreElement;
 let highScoreElement;
 let settingsModal;
+let errorModal;
 let flowTimer;
 const cup = createCup(235, 180, 330, 400, 55);
 
@@ -222,14 +223,30 @@ class CharSquare {
 }
 
 window.onload = function () {
+  GetElements();
+
+  AddHideOnClickEventListener(settingsModal);
+  AddHideOnClickEventListener(errorModal);
+};
+
+function GetElements() {
   scoreElement = document.getElementById("score");
   lastScoreElement = document.getElementById("lastScore");
   highScoreElement = document.getElementById("highScore");
   settingsModal = document.getElementById("settingsModal");
-};
+  errorModal = document.getElementById("errorModal");
+}
+
+function AddHideOnClickEventListener(element) {
+  element.addEventListener("click", (event) => {
+    if (event.target === element) {
+      element.classList.add("hidden");
+    }
+  });
+}
 
 function GenerateAvailableCharList() {
-  allowedCharacters == {};
+  allowedCharacters = {};
   for (const charSet in charSetSettings) {
     // charSet loops through hiragana, katakana, etc
     if (charSetSettings[charSet] && characterSets[charSet]) {
@@ -407,7 +424,15 @@ function LoadKanaSettings() {
   charSetSettings.katakana = GetChecked("katakanaCbx");
   charSetSettings.hiraganaDiacritics = GetChecked("hiraganaDiacriticsCbx");
   charSetSettings.katakanaDiacritics = GetChecked("katakanaDiacriticsCbx");
-  console.log(charSetSettings);
+}
+
+function CharsetIsEmpty() {
+  if (Object.keys(allowedCharacters).length === 0) {
+    console.log("No allowed characters!");
+    document.getElementById("errorModal").classList.remove("hidden");
+    return true;
+  }
+  return false;
 }
 
 function NewGame() {
@@ -415,6 +440,10 @@ function NewGame() {
   LoadKanaSettings();
   ToggleSettingsButton(false);
   GenerateAvailableCharList();
+  if (CharsetIsEmpty()) {
+    ToggleSettingsButton(true);
+    return;
+  }
   CreateNewBlock();
   StartFlow();
 }
