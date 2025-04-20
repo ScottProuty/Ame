@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>雨のゲーム</title>
+    <link rel="icon" type="image/x-icon" href="/Ame/assets/favicon-DctqAUP1.ico" />
+    <script type="module" crossorigin src="/Ame/assets/index-DdN4pxeQ.js"></script>
+    <link rel="stylesheet" crossorigin href="/Ame/assets/index-DmHBJezo.css">
+  </head>
+  <body>
+    <div id="gameArea">
+      <canvas id="backgroundCanvas"></canvas>
+      <canvas id="gameCanvas"></canvas>
+    </div>
+    <div id="interface">
+      <div id="typedText"></div>
+      <br />
+      <div id="score">0</div>
+      <div id="scoreBoard">
+        <p>Last Score:</p>
+        <div id="lastScore">-</div>
+        <p>Highest Score:</p>
+        <div id="highScore">-</div>
+      </div>
+      <br />
+      <button id="newGameBtn">New Game</button>
+      <button id="endGameBtn">End Game</button>
+      <button id="settingsBtn">⚙️ Settings</button>
+    </div>
+    <div id="settingsModal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Settings</h2>
+        <p>Enable Kana:</p>
+        <input type="checkbox" id="hiraganaCbx" checked />
+        <label for="hiraganaCbx">Hiragana</label><br />
+        <input type="checkbox" id="katakanaCbx" checked />
+        <label for="katakanaCbx">Katakana</label><br />
+        <input type="checkbox" id="hiraganaDiacriticsCbx" />
+        <label for="hiraganaDiacriticsCbx">Hiragana Diactirics</label><br />
+        <input type="checkbox" id="katakanaDiacriticsCbx" />
+        <label for="katakanaDiacriticsCbx">Katakana Diacritics</label><br />
+        <button id="closeSettingsBtn">Close</button>
+        <div id="credits">
+          Created by <a href="www.ScottLProuty.com">Scott</a>
+        </div>
+      </div>
+    </div>
+    <div id="errorModal" class="modal hidden">
+      ERROR: No character set selected!
+    </div>
+
+  </body>
+</html>
