@@ -17,7 +17,6 @@ const Engine = Matter.Engine,
   Composite = Matter.Composite;
 const engine = Engine.create();
 const world = engine.world;
-var runner;
 
 // Game globals
 let currentlyDisplayedObjs = [];
