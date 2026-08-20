@@ -1,8 +1,9 @@
 # Ame 雨
-Ame (あめ, "rain") is a game made for practicing Japanese hiragana and katakana. 
-
+Ame (あめ, "rain") is a game made for practicing Japanese hiragana and katakana.  
+Play it [HERE](https://scottlprouty.com/Ame)!  
 The concept is simple: blocks fall (rain, if you will) into a cup. Type the romaji of each symbol displayed on those blocks to make them disappear. Each removed block awards points.
-The goal is to play for as long as you can without letting a block overflow out of the cup. If a block reaches the bottom of the screen, it's game over.
+The goal is to play for as long as you can without letting a block overflow out of the cup.  
+If a block reaches the bottom of the screen, it's game over.
 
 Kanji characters are not supported, *yet*.
 
