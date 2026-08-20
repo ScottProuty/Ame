@@ -55,7 +55,7 @@ const characterSets = {
     ま: "ma",  み: "mi",  む: "mu",  め: "me", も: "mo",
     や: "ya",             ゆ: "yu",            よ: "yo",
     ら: "ra",  り: "ri",  る: "ru",  れ: "re", ろ: "ro",
-    わ: "wa",  を: "o",   ん: "n" 
+    わ: "wa",  を: "wo",   ん: "n" 
     },
     hiraganaDiacritics: {
     が: "ga",  ぎ: "gi",  ぐ: "gu",  げ: "ge",  ご: "go",
