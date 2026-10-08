@@ -51,16 +51,16 @@ const characterSets = {
     さ: "sa",  し: "shi", す: "su",  せ: "se", そ: "so",
     た: "ta",  ち: "chi", つ: "tsu", て: "te", と: "to",
     な: "na",  に: "ni",  ぬ: "nu",  ね: "ne", の: "no",
-    は: "ha",  ひ: "hi",  ふ: "fu",  へ: "he", ほ: "ho", // TODO: accept "ha" or "wa"
+    は: "ha",  ひ: "hi",  ふ: "fu",  へ: "he", ほ: "ho",
     ま: "ma",  み: "mi",  む: "mu",  め: "me", も: "mo",
-    や: "ya",             ゆ: "yu",            よ: "yo",
+    や: "ya",            ゆ: "yu",            よ: "yo",
     ら: "ra",  り: "ri",  る: "ru",  れ: "re", ろ: "ro",
-    わ: "wa",  を: "wo",   ん: "n" 
+    わ: "wa",  を: "wo",  ん: "n" 
     },
     hiraganaDiacritics: {
     が: "ga",  ぎ: "gi",  ぐ: "gu",  げ: "ge",  ご: "go",
     ざ: "za",  じ: "ji",  ず: "zu",  ぜ: "ze",  ぞ: "zo",
-    だ: "da",  ぢ: "ji",  づ: "zu",  で: "de",  ど: "do",
+    だ: "da",                       で: "de",  ど: "do",
     ば: "ba",  び: "bi",  ぶ: "bu",  べ: "be",  ぼ: "bo",
     ぱ: "pa",  ぴ: "pi",  ぷ: "pu",  ぺ: "pe",  ぽ: "po",
     }, 
@@ -72,19 +72,22 @@ const characterSets = {
     ナ: "na", ニ: "ni",  ヌ: "nu",  ネ: "ne", ノ: "no",
     ハ: "ha", ヒ: "hi",  フ: "fu",  ヘ: "he", ホ: "ho",
     マ: "ma", ミ: "mi",  ム: "mu",  メ: "me", モ: "mo",
-    ヤ: "ya",            ユ: "yu",            ヨ: "yo",
+    ヤ: "ya",           ユ: "yu",            ヨ: "yo",
     ラ: "ra", リ: "ri",  ル: "ru",  レ: "re", ロ: "ro",
-    ワ: "wa", ン: "n"
+    ワ: "wa", 　　　　　　ン: "n"
     },
     katakanaDiacritics: {
     ガ: "ga",  ギ: "gi",  グ: "gu",  ゲ: "ge",  ゴ: "go",
     ザ: "za",  ジ: "ji",  ズ: "zu",  ゼ: "ze",  ゾ: "zo",
-    ダ: "da",  ヂ: "ji",  ヅ: "zu",  デ: "de",  ド: "do",
+    ダ: "da",                       デ: "de",  ド: "do",
     バ: "ba",  ビ: "bi",  ブ: "bu",  ベ: "be",  ボ: "bo",
     パ: "pa",  ピ: "pi",  プ: "pu",  ペ: "pe",  ポ: "po",
     },
     kanji: {
-      私: "watashi", 雨:"ame", 行: "iku", 
+      私: "watashi", 雨:"ame", 本: "hon", 一: "ichi",
+      三: "san", 四: "yon", 五: "go", 六: "roku",
+      七: "nana", 八: "hachi", 九: "kyuu", 十: "jyuu",
+      千: "sen", 百: "hyaku"
     }
 };
 
@@ -423,6 +426,7 @@ function LoadKanaSettings() {
   charSetSettings.katakana = GetChecked("katakanaCbx");
   charSetSettings.hiraganaDiacritics = GetChecked("hiraganaDiacriticsCbx");
   charSetSettings.katakanaDiacritics = GetChecked("katakanaDiacriticsCbx");
+  charSetSettings.kanji = GetChecked("kanjiCbx");
 }
 
 function CharsetIsEmpty() {
