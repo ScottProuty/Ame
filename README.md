@@ -97,6 +97,7 @@ I'm not a native speaker, just a learner. I could definitely have made a mistake
 | ん | n  |  | ン | n |
 | を | wo |  |   |   |
 
+
 ### Diacritics
 
 | Hiragana | Romaji |       |Katakana | Romaji |
@@ -112,8 +113,8 @@ I'm not a native speaker, just a learner. I could definitely have made a mistake
 | ぜ | ze || ゼ | ze |
 | ぞ | zo || ゾ | zo |
 | だ | da || ダ | da |
-| ぢ | ji || ヂ | ji |
-| づ | zu || ヅ | zu |
+| ぢ | ji* || ヂ | ji* |
+| づ | zu* || ヅ | zu* |
 | で | de || デ | de |
 | ど | do || ド | do |
 | ば | ba || バ | ba |
@@ -127,3 +128,25 @@ I'm not a native speaker, just a learner. I could definitely have made a mistake
 | ぺ | pe || ペ | pe |
 | ぽ | po || ポ | po |
 
+**\*Note**: ぢ,ヂ,づ, and ヅ are not commonly used, so I have removed them from this game.
+
+### Kanji
+You can also add a few simple kanji characters into the mix.
+Currently, these are available:
+
+| Kanji | Romaji |
+| - | - |
+|私|watashi|
+|雨|ame|
+|本|hon|
+|一|ichi|
+|三|san|
+|四|yon|
+|五|go|
+|六|roku|
+|七|nana|
+|八|hachi|
+|九|kyuu|
+|十|jyuu|
+|千|sen|
+|百|hyaku|
